@@ -27,7 +27,7 @@ export default function WeeklyReport() {
   useEffect(() => {
     const techs   = getTechnicians();
     const entries = getEntries();
-    const weeks   = [...new Set(entries.map((e) => e.weekOf))].sort((a, b) => b.localeCompare(a));
+    const weeks   = Array.from(new Set(entries.map((e) => e.weekOf))).sort((a, b) => b.localeCompare(a));
     setAllWeeks(weeks);
     const current = weeks.length > 0 ? weeks[0] : getWeekMonday();
     setWeekOf((prev) => (weeks.includes(prev) ? prev : current));
