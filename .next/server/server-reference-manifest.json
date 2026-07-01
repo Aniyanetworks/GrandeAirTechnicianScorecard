@@ -1,5 +1,26 @@
 {
-  "node": {},
+  "node": {
+    "215bc0261c40511966a6d7e9550fd9ebc69f7b66": {
+      "workers": {
+        "app/(dashboard)/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5CAniya%20Network%20Solution%5C%5CGrandeAirTechnicianScorecard%5C%5Csrc%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22loginAction%22%2C%22logoutAction%22%5D%5D%5D&__client_imported__=true!",
+        "app/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5CAniya%20Network%20Solution%5C%5CGrandeAirTechnicianScorecard%5C%5Csrc%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22loginAction%22%2C%22logoutAction%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser",
+        "app/login/page": "action-browser"
+      }
+    },
+    "f26a57c9e210d024b7ac3579125994e2bcd61752": {
+      "workers": {
+        "app/(dashboard)/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5CAniya%20Network%20Solution%5C%5CGrandeAirTechnicianScorecard%5C%5Csrc%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22loginAction%22%2C%22logoutAction%22%5D%5D%5D&__client_imported__=true!",
+        "app/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5CAniya%20Network%20Solution%5C%5CGrandeAirTechnicianScorecard%5C%5Csrc%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22loginAction%22%2C%22logoutAction%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser",
+        "app/login/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
-  "encryptionKey": "dV/5muFjpdlGosyM+EdaEc/s56Emj2IVDGW0ia0Fkz0="
+  "encryptionKey": "4R9VM2yT0Z2yHz5+Y+boH7O3oBHHSqq1xVlUuXoYOsY="
 }
