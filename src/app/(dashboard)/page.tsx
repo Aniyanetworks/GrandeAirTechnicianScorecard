@@ -649,15 +649,6 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Live Dashboard</h1>
-          <p className="text-sm text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block" />
-              HousecallPro → n8n → Supabase
-            </span>
-            {updatedAt && (
-              <span>· Updated {updatedAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
-            )}
-          </p>
         </div>
         <button onClick={load}
           className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm transition-all active:scale-95">
@@ -706,7 +697,6 @@ export default function DashboardPage() {
         <div className="px-6 pt-5 pb-0 flex items-start justify-between">
           <div>
             <h2 className="font-bold text-slate-900">Jobs & Estimates — Monthly Volume</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Records received per month via HousecallPro → n8n webhook</p>
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-500 pt-0.5">
             <span className="flex items-center gap-1.5 font-medium">
