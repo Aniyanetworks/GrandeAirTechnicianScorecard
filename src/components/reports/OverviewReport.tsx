@@ -12,15 +12,29 @@ export default function OverviewReport() {
   const [month, setMonth] = useState(getCurrentMonth());
   const [cards, setCards] = useState<{ tech: Technician; card: MonthlyScorecard }[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const techs = getTechnicians();
-    const results = techs.map((tech) => {
-      const entries = getEntriesForMonth(month).filter((e) => e.techId === tech.id);
-      return { tech, card: buildMonthlyScorecard(tech.id, month, entries) };
-    });
-    setCards(results);
-    setSelected(null);
+    async function load() {
+      setLoading(true);
+      try {
+        const [techs, entries] = await Promise.all([
+          getTechnicians(),
+          getEntriesForMonth(month),
+        ]);
+        const results = techs.map((tech) => {
+          const techEntries = entries.filter((e) => e.techId === tech.id);
+          return { tech, card: buildMonthlyScorecard(tech.id, month, techEntries) };
+        });
+        setCards(results);
+        setSelected(null);
+      } catch (err) {
+        console.error("Failed to load overview data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, [month]);
 
   const green  = cards.filter((c) => c.card.color === "GREEN").length;
@@ -61,6 +75,17 @@ export default function OverviewReport() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-4 border-brand-teal border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-gray-400">Loading overview…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Controls */}
@@ -92,47 +117,55 @@ export default function OverviewReport() {
       </div>
 
       {/* Tech cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map(({ tech, card }) => (
-          <button
-            key={tech.id}
-            onClick={() => setSelected(selected === tech.id ? null : tech.id)}
-            className={`card border-2 p-5 text-left transition-all hover:shadow-md ${cardBg[card.color]} ${selected === tech.id ? `ring-2 ${ringColor[card.color]}` : ""}`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className="font-bold text-brand-navy text-base leading-tight">{tech.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{tech.role}</p>
+      {cards.length === 0 ? (
+        <div className="card p-10 text-center">
+          <p className="text-3xl mb-2">👷</p>
+          <p className="text-gray-500 font-medium">No technicians found.</p>
+          <p className="text-sm text-gray-400 mt-1">Add technicians to your Supabase <code className="bg-gray-100 px-1 rounded">technicians</code> table to get started.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {cards.map(({ tech, card }) => (
+            <button
+              key={tech.id}
+              onClick={() => setSelected(selected === tech.id ? null : tech.id)}
+              className={`card border-2 p-5 text-left transition-all hover:shadow-md ${cardBg[card.color]} ${selected === tech.id ? `ring-2 ${ringColor[card.color]}` : ""}`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="font-bold text-brand-navy text-base leading-tight">{tech.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{tech.role}</p>
+                </div>
+                <ScoreBadge color={card.color} size="sm" />
               </div>
-              <ScoreBadge color={card.color} size="sm" />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="relative">
-                {scoreGauge(card.overallScore)}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-black text-brand-navy">{card.overallScore}</span>
+              <div className="flex items-center justify-between">
+                <div className="relative">
+                  {scoreGauge(card.overallScore)}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-black text-brand-navy">{card.overallScore}</span>
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  {card.kpis.slice(0, 3).map((k) => (
+                    <div key={k.name} className="flex items-center gap-1.5 justify-end">
+                      <span className="text-xs text-gray-500 truncate max-w-[80px]">{k.name.split(" ")[0]}</span>
+                      <span className={`text-xs font-semibold ${k.color === "GREEN" ? "text-emerald-600" : k.color === "YELLOW" ? "text-amber-600" : "text-red-600"}`}>{k.actual}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="text-right space-y-1">
-                {card.kpis.slice(0, 3).map((k) => (
-                  <div key={k.name} className="flex items-center gap-1.5 justify-end">
-                    <span className="text-xs text-gray-500 truncate max-w-[80px]">{k.name.split(" ")[0]}</span>
-                    <span className={`text-xs font-semibold ${k.color === "GREEN" ? "text-emerald-600" : k.color === "YELLOW" ? "text-amber-600" : "text-red-600"}`}>{k.actual}</span>
-                  </div>
-                ))}
+              <div className={`mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                card.color === "GREEN"  ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+              : card.color === "YELLOW" ? "bg-amber-100 text-amber-700 border border-amber-200"
+              :                           "bg-red-100 text-red-700 border border-red-200"}`}>
+                {card.color === "GREEN" && "✓ Exceeding expectations"}
+                {card.color === "YELLOW" && "↗ Needs improvement"}
+                {card.color === "RED" && "⚠ Coaching required"}
               </div>
-            </div>
-            <div className={`mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold ${
-              card.color === "GREEN"  ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-            : card.color === "YELLOW" ? "bg-amber-100 text-amber-700 border border-amber-200"
-            :                           "bg-red-100 text-red-700 border border-red-200"}`}>
-              {card.color === "GREEN" && "✓ Exceeding expectations"}
-              {card.color === "YELLOW" && "↗ Needs improvement"}
-              {card.color === "RED" && "⚠ Coaching required"}
-            </div>
-          </button>
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* KPI drill-down */}
       {selectedCard && (

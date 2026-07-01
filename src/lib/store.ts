@@ -1,112 +1,149 @@
-"use client";
-
+import { supabase } from "./supabase";
 import type { Technician, WeeklyEntry } from "./types";
 
-const TECHS_KEY = "grande_air_technicians";
-const ENTRIES_KEY = "grande_air_weekly_entries";
+// ── mappers ──────────────────────────────────────────────────────────────────
 
-const defaultTechs: Technician[] = [
-  { id: "t1", name: "Marcus Rivera", hireDate: "2022-03-15", role: "Lead Technician", weeklyRevenueTarget: 5000 },
-  { id: "t2", name: "Dylan Torres", hireDate: "2023-01-10", role: "HVAC Technician", weeklyRevenueTarget: 4000 },
-  { id: "t3", name: "Cody Nguyen", hireDate: "2023-07-22", role: "HVAC Technician", weeklyRevenueTarget: 3500 },
-  { id: "t4", name: "Jake Simmons", hireDate: "2024-02-05", role: "Junior Technician", weeklyRevenueTarget: 3000 },
-];
-
-// Seed 12 weeks of realistic data so the dashboard is populated on first load
-function seedEntries(): WeeklyEntry[] {
-  const weeks: string[] = [];
-  const base = new Date("2026-03-30"); // Monday
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(base);
-    d.setDate(base.getDate() + i * 7);
-    weeks.push(d.toISOString().slice(0, 10));
-  }
-
-  const entries: WeeklyEntry[] = [];
-  const techProfiles = [
-    { id: "t1", revenueBase: 520, masBase: 0.28, fccBase: 0.94, cbBase: 0.02, lateBase: 0.03, csatBase: 4.85, jobsBase: 22 },
-    { id: "t2", revenueBase: 440, masBase: 0.18, fccBase: 0.88, cbBase: 0.04, lateBase: 0.06, csatBase: 4.6,  jobsBase: 19 },
-    { id: "t3", revenueBase: 380, masBase: 0.12, fccBase: 0.82, cbBase: 0.07, lateBase: 0.10, csatBase: 4.3,  jobsBase: 17 },
-    { id: "t4", revenueBase: 310, masBase: 0.08, fccBase: 0.76, cbBase: 0.10, lateBase: 0.14, csatBase: 4.0,  jobsBase: 14 },
-  ];
-
-  let idx = 0;
-  for (const week of weeks) {
-    for (const p of techProfiles) {
-      const jitter = () => 0.85 + Math.random() * 0.3;
-      const jobs = Math.round(p.jobsBase * jitter());
-      const revenue = Math.round(p.revenueBase * jobs * jitter());
-      const mas = Math.round(p.masBase * jobs * jitter());
-      const fcc = Math.round(p.fccBase * jobs);
-      const cb = Math.round(p.cbBase * jobs);
-      const late = Math.round(p.lateBase * jobs);
-      const ratingCount = Math.max(1, Math.round(jobs * 0.6));
-      const ratingSum = parseFloat((p.csatBase * ratingCount * jitter()).toFixed(1));
-      entries.push({
-        id: `seed-${idx++}`,
-        techId: p.id,
-        weekOf: week,
-        jobsCompleted: jobs,
-        totalRevenue: revenue,
-        maintenanceAgreementsSold: mas,
-        callbackJobs: cb,
-        firstCallCompletions: fcc,
-        lateArrivals: late,
-        customerRatingSum: ratingSum,
-        customerRatingCount: ratingCount,
-        hoursWorked: jobs * 1.8,
-      });
-    }
-  }
-  return entries;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapTech(row: any): Technician {
+  return {
+    id: row.id,
+    name: row.name,
+    hireDate: row.hire_date ?? "",
+    role: row.role ?? "",
+    weeklyRevenueTarget: Number(row.weekly_revenue_target ?? 0),
+  };
 }
 
-export function getTechnicians(): Technician[] {
-  if (typeof window === "undefined") return defaultTechs;
-  try {
-    const raw = localStorage.getItem(TECHS_KEY);
-    return raw ? JSON.parse(raw) : defaultTechs;
-  } catch {
-    return defaultTechs;
-  }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapEntry(row: any): WeeklyEntry {
+  return {
+    id: row.id,
+    techId: row.tech_id,
+    weekOf: row.week_of,
+    jobsCompleted: Number(row.jobs_completed ?? 0),
+    totalRevenue: Number(row.total_revenue ?? 0),
+    maintenanceAgreementsSold: Number(row.maintenance_agreements_sold ?? 0),
+    callbackJobs: Number(row.callback_jobs ?? 0),
+    firstCallCompletions: Number(row.first_call_completions ?? 0),
+    lateArrivals: Number(row.late_arrivals ?? 0),
+    customerRatingSum: Number(row.customer_rating_sum ?? 0),
+    customerRatingCount: Number(row.customer_rating_count ?? 0),
+    hoursWorked: Number(row.hours_worked ?? 0),
+  };
 }
 
-export function saveTechnicians(techs: Technician[]): void {
-  localStorage.setItem(TECHS_KEY, JSON.stringify(techs));
+// ── technicians ───────────────────────────────────────────────────────────────
+
+export async function getTechnicians(): Promise<Technician[]> {
+  const { data, error } = await supabase
+    .from("technicians")
+    .select("*")
+    .order("name");
+  if (error) throw error;
+  return (data ?? []).map(mapTech);
 }
 
-export function getEntries(): WeeklyEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(ENTRIES_KEY);
-    if (raw) return JSON.parse(raw);
-    const seeded = seedEntries();
-    localStorage.setItem(ENTRIES_KEY, JSON.stringify(seeded));
-    return seeded;
-  } catch {
-    return [];
-  }
+export async function saveTechnicians(techs: Technician[]): Promise<void> {
+  const rows = techs.map((t) => ({
+    id: t.id,
+    name: t.name,
+    hire_date: t.hireDate || null,
+    role: t.role,
+    weekly_revenue_target: t.weeklyRevenueTarget,
+  }));
+  const { error } = await supabase.from("technicians").upsert(rows);
+  if (error) throw error;
 }
 
-export function saveEntry(entry: WeeklyEntry): void {
-  const entries = getEntries();
-  const idx = entries.findIndex((e) => e.id === entry.id);
-  if (idx >= 0) entries[idx] = entry;
-  else entries.push(entry);
-  localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries));
+// ── weekly entries ────────────────────────────────────────────────────────────
+
+export async function getEntries(): Promise<WeeklyEntry[]> {
+  const { data, error } = await supabase
+    .from("weekly_entries")
+    .select("*")
+    .order("week_of", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapEntry);
 }
 
-export function deleteEntry(id: string): void {
-  const entries = getEntries().filter((e) => e.id !== id);
-  localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries));
+export async function getAvailableWeeks(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("weekly_entries")
+    .select("week_of")
+    .order("week_of", { ascending: false });
+  if (error) throw error;
+  return Array.from(new Set((data ?? []).map((r) => r.week_of as string)));
 }
 
-export function getEntriesForTechMonth(techId: string, month: string): WeeklyEntry[] {
-  return getEntries().filter((e) => e.techId === techId && e.weekOf.startsWith(month));
+export async function getEntriesForWeek(weekOf: string): Promise<WeeklyEntry[]> {
+  const { data, error } = await supabase
+    .from("weekly_entries")
+    .select("*")
+    .eq("week_of", weekOf);
+  if (error) throw error;
+  return (data ?? []).map(mapEntry);
 }
 
-export function getEntriesForMonth(month: string): WeeklyEntry[] {
-  return getEntries().filter((e) => e.weekOf.startsWith(month));
+export async function getEntriesForMonth(month: string): Promise<WeeklyEntry[]> {
+  const start = `${month}-01`;
+  const next = new Date(start);
+  next.setMonth(next.getMonth() + 1);
+  const end = next.toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("weekly_entries")
+    .select("*")
+    .gte("week_of", start)
+    .lt("week_of", end)
+    .order("week_of");
+  if (error) throw error;
+  return (data ?? []).map(mapEntry);
+}
+
+export async function getEntriesForTechMonth(
+  techId: string,
+  month: string
+): Promise<WeeklyEntry[]> {
+  const start = `${month}-01`;
+  const next = new Date(start);
+  next.setMonth(next.getMonth() + 1);
+  const end = next.toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("weekly_entries")
+    .select("*")
+    .eq("tech_id", techId)
+    .gte("week_of", start)
+    .lt("week_of", end)
+    .order("week_of");
+  if (error) throw error;
+  return (data ?? []).map(mapEntry);
+}
+
+export async function saveEntry(entry: WeeklyEntry): Promise<void> {
+  const { error } = await supabase.from("weekly_entries").upsert({
+    id: entry.id,
+    tech_id: entry.techId,
+    week_of: entry.weekOf,
+    jobs_completed: entry.jobsCompleted,
+    total_revenue: entry.totalRevenue,
+    maintenance_agreements_sold: entry.maintenanceAgreementsSold,
+    callback_jobs: entry.callbackJobs,
+    first_call_completions: entry.firstCallCompletions,
+    late_arrivals: entry.lateArrivals,
+    customer_rating_sum: entry.customerRatingSum,
+    customer_rating_count: entry.customerRatingCount,
+    hours_worked: entry.hoursWorked,
+  });
+  if (error) throw error;
+}
+
+export async function deleteEntry(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("weekly_entries")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
 }
 
 export function generateId(): string {

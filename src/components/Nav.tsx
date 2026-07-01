@@ -5,12 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/",                label: "Dashboard"      },
-  { href: "/weekly",          label: "Weekly Report"  },
-  { href: "/monthly",         label: "Monthly"        },
-  { href: "/quarterly",       label: "Quarterly"      },
-  { href: "/manager",         label: "Service Mgr"    },
-  { href: "/kpi-definitions", label: "KPI Definitions"},
+  { href: "/", label: "Live Dashboard" },
 ];
 
 export default function Nav() {

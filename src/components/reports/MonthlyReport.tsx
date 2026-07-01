@@ -12,17 +12,35 @@ export default function MonthlyReport() {
   const [techId, setTechId] = useState("");
   const [month, setMonth]   = useState(getCurrentMonth());
   const [card, setCard]     = useState<MonthlyScorecard | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const t = getTechnicians();
-    setTechs(t);
-    setTechId(t[0]?.id || "");
+    async function loadTechs() {
+      try {
+        const t = await getTechnicians();
+        setTechs(t);
+        setTechId(t[0]?.id || "");
+      } catch (err) {
+        console.error("Failed to load technicians:", err);
+      }
+    }
+    loadTechs();
   }, []);
 
   useEffect(() => {
     if (!techId) return;
-    const entries = getEntriesForTechMonth(techId, month);
-    setCard(buildMonthlyScorecard(techId, month, entries));
+    async function loadCard() {
+      setLoading(true);
+      try {
+        const entries = await getEntriesForTechMonth(techId, month);
+        setCard(buildMonthlyScorecard(techId, month, entries));
+      } catch (err) {
+        console.error("Failed to load monthly data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCard();
   }, [techId, month]);
 
   const tech = techs.find((t) => t.id === techId);
@@ -35,13 +53,29 @@ export default function MonthlyReport() {
     <div className="space-y-6">
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <select value={techId} onChange={(e) => setTechId(e.target.value)} className="input w-52">
-          {techs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        <select value={techId} onChange={(e) => setTechId(e.target.value)} className="input w-52" disabled={techs.length === 0}>
+          {techs.length === 0
+            ? <option>No technicians</option>
+            : techs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)
+          }
         </select>
         <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="input w-44" />
       </div>
 
-      {card && tech && (
+      {techs.length === 0 ? (
+        <div className="card p-10 text-center">
+          <p className="text-3xl mb-2">👷</p>
+          <p className="text-gray-500 font-medium">No technicians found.</p>
+          <p className="text-sm text-gray-400 mt-1">Add technicians to your Supabase <code className="bg-gray-100 px-1 rounded">technicians</code> table.</p>
+        </div>
+      ) : loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-3">
+            <div className="w-8 h-8 border-4 border-brand-teal border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm text-gray-400">Loading scorecard…</p>
+          </div>
+        </div>
+      ) : card && tech ? (
         <>
           {/* Score hero */}
           <div className={`card p-6 ${card.color === "GREEN" ? "bg-emerald-50 border-emerald-200" : card.color === "YELLOW" ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"}`}>
@@ -107,7 +141,7 @@ export default function MonthlyReport() {
           )}
 
           {/* Weekly breakdown table */}
-          {card.weeklyEntries.length > 0 && (
+          {card.weeklyEntries.length > 0 ? (
             <div className="card overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h3 className="font-semibold text-gray-700">Weekly Breakdown</h3>
@@ -147,15 +181,13 @@ export default function MonthlyReport() {
                 </table>
               </div>
             </div>
-          )}
-
-          {card.weeklyEntries.length === 0 && (
+          ) : (
             <div className="card p-10 text-center">
-              <p className="text-gray-400">No weekly data entered for this month yet.</p>
+              <p className="text-gray-400">No weekly data for {tech.name} in {monthLabel(month)}.</p>
             </div>
           )}
         </>
-      )}
+      ) : null}
     </div>
   );
 }

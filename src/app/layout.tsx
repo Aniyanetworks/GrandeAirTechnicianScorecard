@@ -6,8 +6,8 @@ import Nav from "@/components/Nav";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Grande Air Solutions — Technician Scorecard",
-  description: "HVAC Technician Performance Dashboard",
+  title: "Grande Air Solutions — Live Dashboard",
+  description: "HousecallPro live data from n8n · Jobs & Estimates",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -19,35 +19,70 @@ function getCurrentQuarter(): { year: number; q: QuarterKey } {
 interface MonthRow { month: string; label: string; score: number; revenue: number; jobs: number; color: "GREEN"|"YELLOW"|"RED" }
 
 export default function QuarterlyReport() {
-  const [techs, setTechs]       = useState<Technician[]>([]);
-  const [techId, setTechId]     = useState("");
-  const [year, setYear]         = useState(() => getCurrentQuarter().year);
-  const [q, setQ]               = useState<QuarterKey>(() => getCurrentQuarter().q);
-  const [rows, setRows]         = useState<MonthRow[]>([]);
-  const [selected, setSelected] = useState<MonthRow | null>(null);
+  const [techs, setTechs]         = useState<Technician[]>([]);
+  const [techId, setTechId]       = useState("");
+  const [year, setYear]           = useState(() => getCurrentQuarter().year);
+  const [q, setQ]                 = useState<QuarterKey>(() => getCurrentQuarter().q);
+  const [rows, setRows]           = useState<MonthRow[]>([]);
+  const [selected, setSelected]   = useState<MonthRow | null>(null);
   const [drillKpis, setDrillKpis] = useState<ReturnType<typeof buildMonthlyScorecard>["kpis"]>([]);
+  const [loading, setLoading]     = useState(true);
 
   useEffect(() => {
-    const t = getTechnicians();
-    setTechs(t);
-    setTechId(t[0]?.id || "");
+    async function loadTechs() {
+      try {
+        const t = await getTechnicians();
+        setTechs(t);
+        setTechId(t[0]?.id || "");
+      } catch (err) {
+        console.error("Failed to load technicians:", err);
+      }
+    }
+    loadTechs();
   }, []);
 
   useEffect(() => {
     if (!techId) return;
-    const months = QUARTERS[q].map((m) => `${year}-${String(m).padStart(2, "0")}`);
-    setRows(months.map((month) => {
-      const entries = getEntriesForTechMonth(techId, month);
-      const card = buildMonthlyScorecard(techId, month, entries);
-      return { month, label: monthLabel(month), score: card.overallScore, revenue: entries.reduce((s, e) => s + e.totalRevenue, 0), jobs: entries.reduce((s, e) => s + e.jobsCompleted, 0), color: card.color };
-    }));
-    setSelected(null);
+    async function loadQuarter() {
+      setLoading(true);
+      try {
+        const months = QUARTERS[q].map((m) => `${year}-${String(m).padStart(2, "0")}`);
+        const results = await Promise.all(
+          months.map(async (month) => {
+            const entries = await getEntriesForTechMonth(techId, month);
+            const card = buildMonthlyScorecard(techId, month, entries);
+            return {
+              month,
+              label: monthLabel(month),
+              score: card.overallScore,
+              revenue: entries.reduce((s, e) => s + e.totalRevenue, 0),
+              jobs: entries.reduce((s, e) => s + e.jobsCompleted, 0),
+              color: card.color,
+            };
+          })
+        );
+        setRows(results);
+        setSelected(null);
+      } catch (err) {
+        console.error("Failed to load quarterly data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadQuarter();
   }, [techId, year, q]);
 
   useEffect(() => {
     if (!selected || !techId) return;
-    const entries = getEntriesForTechMonth(techId, selected.month);
-    setDrillKpis(buildMonthlyScorecard(techId, selected.month, entries).kpis);
+    async function loadDrill() {
+      try {
+        const entries = await getEntriesForTechMonth(techId, selected!.month);
+        setDrillKpis(buildMonthlyScorecard(techId, selected!.month, entries).kpis);
+      } catch (err) {
+        console.error("Failed to load drill-down:", err);
+      }
+    }
+    loadDrill();
   }, [selected, techId]);
 
   const validRows  = rows.filter((r) => r.jobs > 0);
@@ -62,8 +97,11 @@ export default function QuarterlyReport() {
     <div className="space-y-6">
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <select value={techId} onChange={(e) => setTechId(e.target.value)} className="input w-52">
-          {techs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        <select value={techId} onChange={(e) => setTechId(e.target.value)} className="input w-52" disabled={techs.length === 0}>
+          {techs.length === 0
+            ? <option>No technicians</option>
+            : techs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)
+          }
         </select>
         <select value={String(year)} onChange={(e) => setYear(Number(e.target.value))} className="input w-28">
           {[2024,2025,2026,2027].map((y) => <option key={y}>{y}</option>)}
@@ -73,7 +111,20 @@ export default function QuarterlyReport() {
         </select>
       </div>
 
-      {tech && (
+      {techs.length === 0 ? (
+        <div className="card p-10 text-center">
+          <p className="text-3xl mb-2">👷</p>
+          <p className="text-gray-500 font-medium">No technicians found.</p>
+          <p className="text-sm text-gray-400 mt-1">Add technicians to your Supabase <code className="bg-gray-100 px-1 rounded">technicians</code> table.</p>
+        </div>
+      ) : loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-3">
+            <div className="w-8 h-8 border-4 border-brand-teal border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm text-gray-400">Loading quarterly data…</p>
+          </div>
+        </div>
+      ) : tech ? (
         <>
           {/* Hero */}
           <div className={`card p-6 ${qColor === "GREEN" ? "bg-emerald-50 border-emerald-200" : qColor === "YELLOW" ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"}`}>
@@ -159,7 +210,7 @@ export default function QuarterlyReport() {
             </div>
           )}
         </>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTechnicians, getEntries } from "@/lib/store";
+import { getTechnicians, getAvailableWeeks, getEntriesForWeek } from "@/lib/store";
 import { getWeekMonday, weekLabel, formatCurrency, getScoreColor } from "@/lib/calculations";
 import type { Technician, WeeklyEntry } from "@/lib/types";
 import ScoreBadge from "@/components/ScoreBadge";
@@ -23,23 +23,50 @@ export default function WeeklyReport() {
   const [weekOf, setWeekOf]     = useState(getWeekMonday());
   const [rows, setRows]         = useState<TechWeekRow[]>([]);
   const [allWeeks, setAllWeeks] = useState<string[]>([]);
+  const [loading, setLoading]   = useState(true);
 
+  // Load available weeks + technicians once on mount
   useEffect(() => {
-    const techs   = getTechnicians();
-    const entries = getEntries();
-    const weeks   = Array.from(new Set(entries.map((e) => e.weekOf))).sort((a, b) => b.localeCompare(a));
-    setAllWeeks(weeks);
-    const current = weeks.length > 0 ? weeks[0] : getWeekMonday();
-    setWeekOf((prev) => (weeks.includes(prev) ? prev : current));
-    const weekEntries = entries.filter((e) => e.weekOf === (weeks.includes(weekOf) ? weekOf : current));
-    setRows(techs.map((tech) => ({ tech, entry: weekEntries.find((e) => e.techId === tech.id) ?? null })));
+    async function init() {
+      setLoading(true);
+      try {
+        const [techs, weeks] = await Promise.all([getTechnicians(), getAvailableWeeks()]);
+        setAllWeeks(weeks);
+        const currentWeek = weeks.length > 0 ? weeks[0] : getWeekMonday();
+        setWeekOf(currentWeek);
+
+        const entries = await getEntriesForWeek(currentWeek);
+        setRows(techs.map((tech) => ({ tech, entry: entries.find((e) => e.techId === tech.id) ?? null })));
+      } catch (err) {
+        console.error("Failed to load weekly data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reload entries when weekOf changes (but not on initial mount)
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
-    const techs   = getTechnicians();
-    const entries = getEntries().filter((e) => e.weekOf === weekOf);
-    setRows(techs.map((tech) => ({ tech, entry: entries.find((e) => e.techId === tech.id) ?? null })));
+    if (!initialized) { setInitialized(true); return; }
+    async function loadWeek() {
+      setLoading(true);
+      try {
+        const [techs, entries] = await Promise.all([
+          getTechnicians(),
+          getEntriesForWeek(weekOf),
+        ]);
+        setRows(techs.map((tech) => ({ tech, entry: entries.find((e) => e.techId === tech.id) ?? null })));
+      } catch (err) {
+        console.error("Failed to load week entries:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadWeek();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekOf]);
 
   const active       = rows.filter((r) => r.entry !== null).map((r) => r.entry!);
@@ -65,6 +92,17 @@ export default function WeeklyReport() {
     setWeekOf(d.toISOString().slice(0, 10));
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-4 border-brand-teal border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-gray-400">Loading weekly data…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Week selector */}
@@ -80,7 +118,8 @@ export default function WeeklyReport() {
       {active.length === 0 ? (
         <div className="card p-10 text-center">
           <p className="text-3xl mb-2">📋</p>
-          <p className="text-gray-500">No data for this week. Select a different week.</p>
+          <p className="text-gray-500">No data for this week.</p>
+          <p className="text-sm text-gray-400 mt-1">Add weekly entries to the <code className="bg-gray-100 px-1 rounded">weekly_entries</code> table in Supabase.</p>
         </div>
       ) : (
         <>
