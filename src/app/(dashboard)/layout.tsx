@@ -4,11 +4,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col">
       <Nav />
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-10">
         {children}
       </main>
       <footer className="border-t border-gray-100 mt-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <span>
             © 2026{" "}
             <span className="text-brand-orange font-semibold">Grande Air Solutions</span>

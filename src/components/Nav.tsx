@@ -26,7 +26,7 @@ export default function Nav() {
 
   return (
     <header className="border-b-2 border-brand-orange shadow-sm sticky top-0 z-30" style={{ backgroundColor: "#eff4f7" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10">
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}

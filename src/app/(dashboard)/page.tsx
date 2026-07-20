@@ -26,6 +26,8 @@ interface Job {
   appointment_status: string | null;
   subtotal: number | null;
   created_at: string;
+  user_name: string | null;
+  user_id: string | null;
 }
 
 interface Estimate {
@@ -38,11 +40,22 @@ interface Estimate {
   estimate_status: string | null;
   total_amount: number | null;
   created_at: string;
+  user_name: string | null;
+  user_id: string | null;
+}
+
+interface TechRow {
+  id: string;
+  name: string;
+  jobCount: number;
+  jobEarnings: number;
+  estCount: number;
+  estValue: number;
 }
 
 type QuickDate = "all" | "week" | "month" | "last_month";
 type Source    = "all" | "ai" | "direct";
-type Tab       = "jobs" | "estimates";
+type Tab       = "jobs" | "estimates" | "technicians";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -96,16 +109,17 @@ interface StatCardProps {
   iconColor: string;
   trendCur?: number;
   trendPrev?: number;
+  trendLabel?: string;
 }
 
-function StatCard({ label, value, sub, icon, iconBg, iconColor, trendCur, trendPrev }: StatCardProps) {
+function StatCard({ label, value, sub, icon, iconBg, iconColor, trendCur, trendPrev, trendLabel = "vs last week" }: StatCardProps) {
   let trend: React.ReactNode = null;
   if (trendCur !== undefined && trendPrev !== undefined) {
     if (trendPrev === 0 && trendCur > 0) {
       trend = (
         <p className="mt-2 text-xs font-semibold text-emerald-600 flex items-center gap-1">
           <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">NEW</span>
-          +{trendCur} this week
+          first earnings this month
         </p>
       );
     } else if (trendPrev > 0) {
@@ -116,23 +130,25 @@ function StatCard({ label, value, sub, icon, iconBg, iconColor, trendCur, trendP
           <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${up ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"}`}>
             {up ? "▲" : "▼"} {Math.abs(pct)}%
           </span>
-          vs last week
+          {trendLabel}
         </p>
       );
     }
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200 overflow-hidden min-w-0">
       <div className="flex items-start justify-between">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${iconBg}`}>
           <span className={iconColor}>{icon}</span>
         </div>
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-right leading-tight">{label}</p>
       </div>
-      <div>
-        <p className="text-3xl font-black text-slate-900 leading-none tracking-tight">{value}</p>
-        <p className="text-xs text-slate-400 mt-1">{sub}</p>
+      <div className="min-w-0">
+        <p className={`font-black text-slate-900 leading-none tracking-tight truncate ${
+          (() => { const l = String(value).length; return l <= 3 ? "text-3xl" : l <= 5 ? "text-2xl" : l <= 8 ? "text-xl" : "text-lg"; })()
+        }`}>{value}</p>
+        <p className="text-xs text-slate-400 mt-1 truncate">{sub}</p>
         {trend}
       </div>
     </div>
@@ -423,21 +439,23 @@ function TableCard({ title, count, total, page, pages, children, onPageChange }:
 // ── Section Selector Card ─────────────────────────────────────────────────────
 
 function SectionTab({
-  type, active, count, weekCount, aiCount, recentName, onClick,
+  type, active, count, weekCount, aiCount, recentName, onClick, totalEarnings,
 }: {
-  type: "jobs" | "estimates";
+  type: "jobs" | "estimates" | "technicians";
   active: boolean;
   count: number;
   weekCount: number;
   aiCount: number;
   recentName: string | null;
   onClick: () => void;
+  totalEarnings?: number;
 }) {
+  const isTech  = type === "technicians";
   const isJob   = type === "jobs";
-  const accent  = isJob ? "#1e3a5f" : "#0d9488";
-  const label   = isJob ? "Jobs / Appointments" : "Estimates";
-  const icon    = isJob ? "🔧" : "📋";
-  const hoverBg = isJob ? "hover:border-[#1e3a5f]/30" : "hover:border-[#0d9488]/30";
+  const accent  = isTech ? "#7c3aed" : isJob ? "#1e3a5f" : "#0d9488";
+  const label   = isTech ? "Technicians" : isJob ? "Jobs / Appointments" : "Estimates";
+  const icon    = isTech ? "👷" : isJob ? "🔧" : "📋";
+  const hoverBg = isTech ? "hover:border-violet-300" : isJob ? "hover:border-[#1e3a5f]/30" : "hover:border-[#0d9488]/30";
 
   return (
     <button
@@ -482,22 +500,43 @@ function SectionTab({
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 divide-x divide-slate-100">
-        <div className="pr-4">
-          <p className="text-2xl font-black text-slate-900 leading-none">{count}</p>
-          <p className="text-xs text-slate-400 mt-1 font-medium">Total</p>
+      {isTech ? (
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          <div className="pr-4">
+            <p className="text-2xl font-black text-slate-900 leading-none">{count}</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Technicians</p>
+          </div>
+          <div className="px-4">
+            <p className="text-2xl font-black leading-none" style={{ color: active ? accent : "#334155" }}>
+              {weekCount}
+            </p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Active this wk</p>
+          </div>
+          <div className="pl-4">
+            <p className="text-sm font-black text-violet-600 leading-none truncate">
+              {totalEarnings && totalEarnings > 0 ? fmtMoney(totalEarnings) : "$0"}
+            </p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Total earned</p>
+          </div>
         </div>
-        <div className="px-4">
-          <p className="text-2xl font-black leading-none" style={{ color: active ? accent : "#334155" }}>
-            {weekCount}
-          </p>
-          <p className="text-xs text-slate-400 mt-1 font-medium">This week</p>
+      ) : (
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          <div className="pr-4">
+            <p className="text-2xl font-black text-slate-900 leading-none">{count}</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Total</p>
+          </div>
+          <div className="px-4">
+            <p className="text-2xl font-black leading-none" style={{ color: active ? accent : "#334155" }}>
+              {weekCount}
+            </p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">This week</p>
+          </div>
+          <div className="pl-4">
+            <p className="text-2xl font-black text-violet-600 leading-none">{aiCount}</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">via AI</p>
+          </div>
         </div>
-        <div className="pl-4">
-          <p className="text-2xl font-black text-violet-600 leading-none">{aiCount}</p>
-          <p className="text-xs text-slate-400 mt-1 font-medium">via AI</p>
-        </div>
-      </div>
+      )}
     </button>
   );
 }
@@ -507,11 +546,13 @@ function SectionTab({
 const PS = 20;
 
 export default function DashboardPage() {
-  const [jobs,      setJobs]      = useState<Job[]>([]);
-  const [estimates, setEstimates] = useState<Estimate[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [jobs,          setJobs]         = useState<Job[]>([]);
+  const [estimates,     setEstimates]    = useState<Estimate[]>([]);
+  const [totalJobCount, setTotalJobCount] = useState(0);
+  const [totalEstCount, setTotalEstCount] = useState(0);
+  const [loading,       setLoading]      = useState(true);
+  const [error,         setError]        = useState<string | null>(null);
+  const [updatedAt,     setUpdatedAt]    = useState<Date | null>(null);
 
   const [tab,           setTab]       = useState<Tab>("jobs");
   const [search,        setSearch]    = useState("");
@@ -520,6 +561,7 @@ export default function DashboardPage() {
   const [requestedOnly, setReqOnly]   = useState(false);
   const [jobPage,       setJobPage]   = useState(1);
   const [estPage,       setEstPage]   = useState(1);
+  const [techMonth,     setTechMonth] = useState<string>("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -527,20 +569,20 @@ export default function DashboardPage() {
     try {
       const jr = await supabase
         .from("appointments")
-        .select("id,name,phone,email,call_summary_id,appointment_requested,appointment_status,subtotal,created_at")
-        .order("created_at", { ascending: false })
-        .limit(500);
+        .select("id,name,phone,email,call_summary_id,appointment_requested,appointment_status,subtotal,created_at,user_name,user_id", { count: "exact" })
+        .order("created_at", { ascending: false });
       if (jr.error) throw new Error(`appointments: ${jr.error.message}`);
 
       const er = await supabase
         .from("estimates")
-        .select("id,name,phone,email,call_summary_id,estimate_requested,estimate_status,total_amount,created_at")
-        .order("created_at", { ascending: false })
-        .limit(500);
+        .select("id,name,phone,email,call_summary_id,estimate_requested,estimate_status,total_amount,created_at,user_name,user_id", { count: "exact" })
+        .order("created_at", { ascending: false });
       if (er.error) throw new Error(`estimates: ${er.error.message}`);
 
       setJobs((jr.data ?? []) as Job[]);
       setEstimates((er.data ?? []) as Estimate[]);
+      setTotalJobCount(jr.count ?? jr.data?.length ?? 0);
+      setTotalEstCount(er.count ?? er.data?.length ?? 0);
       setUpdatedAt(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -561,6 +603,51 @@ export default function DashboardPage() {
   const thisWkEsts = useMemo(() => estimates.filter(e => { const d = new Date(e.created_at); return d >= twS && d < twE; }), [estimates, twS, twE]);
   const lastWkEsts = useMemo(() => estimates.filter(e => { const d = new Date(e.created_at); return d >= lwS && d < lwE; }), [estimates, lwS, lwE]);
   const thisWkEstVal = useMemo(() => thisWkEsts.reduce((s, e) => s + (e.total_amount ?? 0), 0), [thisWkEsts]);
+
+  // ── Monthly earnings ──────────────────────────────────────────────────────
+  const [tmS, tmE] = useMemo(() => monthRange(0),  []);
+  const [lmS, lmE] = useMemo(() => monthRange(-1), []);
+
+  const thisMoJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= tmS && d < tmE; }), [jobs, tmS, tmE]);
+  const lastMoJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= lmS && d < lmE; }), [jobs, lmS, lmE]);
+
+  const thisMoEarnings = useMemo(() => thisMoJobs.reduce((s, j) => s + (j.subtotal ?? 0), 0), [thisMoJobs]);
+  const lastMoEarnings = useMemo(() => lastMoJobs.reduce((s, j) => s + (j.subtotal ?? 0), 0), [lastMoJobs]);
+
+  // ── Technician breakdown ──────────────────────────────────────────────────
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    jobs.forEach(j => { if (j.created_at) set.add(j.created_at.slice(0, 7)); });
+    estimates.forEach(e => { if (e.created_at) set.add(e.created_at.slice(0, 7)); });
+    return Array.from(set).sort((a, b) => b.localeCompare(a));
+  }, [jobs, estimates]);
+
+  const techData = useMemo<TechRow[]>(() => {
+    const fj = techMonth === "all" ? jobs      : jobs.filter(j => j.created_at.slice(0, 7) === techMonth);
+    const fe = techMonth === "all" ? estimates : estimates.filter(e => e.created_at.slice(0, 7) === techMonth);
+    const map = new Map<string, TechRow>();
+    fj.forEach(j => {
+      if (!j.user_id || !j.user_name) return;
+      const key  = j.user_id;
+      const name = j.user_name;
+      if (!map.has(key)) map.set(key, { id: key, name, jobCount: 0, jobEarnings: 0, estCount: 0, estValue: 0 });
+      const r = map.get(key)!;
+      r.jobCount++;
+      r.jobEarnings += j.subtotal ?? 0;
+    });
+    fe.forEach(e => {
+      if (!e.user_id || !e.user_name) return;
+      const key  = e.user_id;
+      const name = e.user_name;
+      if (!map.has(key)) map.set(key, { id: key, name, jobCount: 0, jobEarnings: 0, estCount: 0, estValue: 0 });
+      const r = map.get(key)!;
+      r.estCount++;
+      r.estValue += e.total_amount ?? 0;
+    });
+    return Array.from(map.values()).sort((a, b) => b.jobEarnings - a.jobEarnings || b.jobCount - a.jobCount);
+  }, [jobs, estimates, techMonth]);
+
+  const techTotalEarnings = useMemo(() => techData.reduce((s, t) => s + t.jobEarnings, 0), [techData]);
 
   const aiJobs   = useMemo(() => jobs.filter(j => !!j.call_summary_id).length, [jobs]);
   const aiEsts   = useMemo(() => estimates.filter(e => !!e.call_summary_id).length, [estimates]);
@@ -660,13 +747,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
         <StatCard
-          label="Total Jobs"  value={jobs.length} sub="all appointments"
+          label="Total Jobs"  value={totalJobCount} sub="all appointments"
           icon="🔧" iconBg="bg-slate-100" iconColor="text-slate-700"
         />
         <StatCard
-          label="Total Estimates" value={estimates.length} sub="all estimates"
+          label="Total Estimates" value={totalEstCount} sub="all estimates"
           icon="📋" iconBg="bg-teal-50" iconColor="text-teal-700"
         />
         <StatCard
@@ -681,6 +768,14 @@ export default function DashboardPage() {
           sub={thisWkEstVal > 0 ? `${thisWkEsts.length} estimates` : "estimates this week"}
           icon="💰" iconBg="bg-violet-50" iconColor="text-violet-700"
           trendCur={thisWkEsts.length} trendPrev={lastWkEsts.length}
+        />
+        <StatCard
+          label="Earnings This Month"
+          value={thisMoEarnings > 0 ? fmtMoney(thisMoEarnings) : `${thisMoJobs.length} jobs`}
+          sub={thisMoEarnings > 0 ? `${thisMoJobs.length} jobs · subtotal` : "no subtotal yet"}
+          icon="💵" iconBg="bg-green-50" iconColor="text-green-700"
+          trendCur={thisMoEarnings} trendPrev={lastMoEarnings}
+          trendLabel="vs last month"
         />
         <StatCard
           label="AI-Powered" value={aiTotal} sub="via AI phone call"
@@ -713,22 +808,154 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Section selector cards ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <SectionTab
           type="jobs" active={tab === "jobs"}
-          count={jobs.length} weekCount={thisWkJobs.length} aiCount={aiJobs}
+          count={totalJobCount} weekCount={thisWkJobs.length} aiCount={aiJobs}
           recentName={jobs[0]?.name ?? null}
           onClick={() => setTab("jobs")}
         />
         <SectionTab
           type="estimates" active={tab === "estimates"}
-          count={estimates.length} weekCount={thisWkEsts.length} aiCount={aiEsts}
+          count={totalEstCount} weekCount={thisWkEsts.length} aiCount={aiEsts}
           recentName={estimates[0]?.name ?? null}
           onClick={() => setTab("estimates")}
         />
+        <SectionTab
+          type="technicians" active={tab === "technicians"}
+          count={techData.length}
+          weekCount={jobs.filter(j => { const d = new Date(j.created_at); return d >= twS && d < twE; }).reduce((s, j) => { s.add(j.user_id ?? ""); return s; }, new Set<string>()).size}
+          aiCount={0}
+          recentName={null}
+          totalEarnings={techTotalEarnings}
+          onClick={() => setTab("technicians")}
+        />
       </div>
 
-      {/* ── Shared filter bar ──────────────────────────────────────────── */}
+      {/* ── Technician earnings ────────────────────────────────────────── */}
+      {tab === "technicians" && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          {/* Header + month filter */}
+          <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-white">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-slate-900">Technician Earnings</h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {techData.length} technician{techData.length !== 1 ? "s" : ""} · {techMonth === "all" ? "all time" : fmtMonthKey(techMonth)}
+                </p>
+              </div>
+              {/* Month filter pills */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={() => setTechMonth("all")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    techMonth === "all"
+                      ? "bg-violet-600 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  All time
+                </button>
+                {availableMonths.map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setTechMonth(m)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      techMonth === m
+                        ? "bg-violet-600 text-white shadow-sm"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {fmtMonthKey(m)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            {techData.length === 0 ? (
+              <p className="text-center text-slate-400 py-16 text-sm">
+                No technician data found for this period.
+              </p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    {["#", "Technician", "Jobs", "Job Earnings", "Estimates", "Est. Pipeline", "Total Earnings"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {techData.map((t, i) => {
+                    const topEarner = i === 0 && t.jobEarnings > 0;
+                    return (
+                      <tr key={t.id} className={`border-b border-slate-50 hover:bg-violet-50/30 transition-colors ${i % 2 === 1 ? "bg-slate-50/40" : ""}`}>
+                        <td className="px-4 py-3.5 font-bold text-slate-400 text-xs w-10">
+                          {topEarner ? "🥇" : `#${i + 1}`}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div>
+                            <p className="font-semibold text-slate-900">{t.name}</p>
+                            <p className="text-xs text-slate-400 mt-0.5 font-mono">{t.id}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                            🔧 {t.jobCount}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 font-bold text-slate-900">
+                          {t.jobEarnings > 0 ? (
+                            <span className="text-emerald-700">{fmtMoney(t.jobEarnings)}</span>
+                          ) : (
+                            <span className="text-slate-300 font-normal">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">
+                            📋 {t.estCount}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-600">
+                          {t.estValue > 0 ? fmtMoney(t.estValue) : <span className="text-slate-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className={`font-bold ${t.jobEarnings > 0 ? "text-violet-700" : "text-slate-300"}`}>
+                            {t.jobEarnings > 0 ? fmtMoney(t.jobEarnings) : "—"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-slate-50 border-t-2 border-slate-200">
+                    <td colSpan={3} className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Totals</td>
+                    <td className="px-4 py-3 font-black text-emerald-700">
+                      {fmtMoney(techData.reduce((s, t) => s + t.jobEarnings, 0))}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-bold text-slate-500">
+                      {techData.reduce((s, t) => s + t.estCount, 0)} est.
+                    </td>
+                    <td className="px-4 py-3 font-bold text-slate-600">
+                      {fmtMoney(techData.reduce((s, t) => s + t.estValue, 0))}
+                    </td>
+                    <td className="px-4 py-3 font-black text-violet-700">
+                      {fmtMoney(techTotalEarnings)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Shared filter bar (jobs / estimates only) ───────────────────── */}
+      {tab !== "technicians" && (
       <FilterBar
         search={search} onSearch={setSearch}
         quickDate={quickDate} onDate={setQuickDate}
@@ -736,10 +963,11 @@ export default function DashboardPage() {
         requestedOnly={requestedOnly} onRequested={setReqOnly}
         hasActive={hasFilter} onClear={clearFilters}
       />
+      )}
 
       {/* ── Jobs ─────────────────────────────────────────────────────────── */}
       {tab === "jobs" && (
-        <TableCard title="Jobs / Appointments" count={filteredJobs.length} total={jobs.length}
+        <TableCard title="Jobs / Appointments" count={filteredJobs.length} total={totalJobCount}
           page={jobPage} pages={jobPages} onPageChange={setJobPage}>
           <table className="w-full text-sm">
             <thead>
@@ -775,7 +1003,7 @@ export default function DashboardPage() {
 
       {/* ── Estimates ────────────────────────────────────────────────────── */}
       {tab === "estimates" && (
-        <TableCard title="Estimates" count={filteredEsts.length} total={estimates.length}
+        <TableCard title="Estimates" count={filteredEsts.length} total={totalEstCount}
           page={estPage} pages={estPages} onPageChange={setEstPage}>
           <table className="w-full text-sm">
             <thead>
