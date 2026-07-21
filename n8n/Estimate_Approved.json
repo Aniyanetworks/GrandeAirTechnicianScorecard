@@ -1,0 +1,867 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "estimate-approved",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-1936, 240],
+      "id": "3343b664-f895-4675-a12c-47b2106de9e8",
+      "name": "Webhook",
+      "webhookId": "f605dd64-484e-4d7a-82a1-ff888bc61bd8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "127f1429-c251-4c01-810f-719f0c945d18",
+              "name": "location id",
+              "value": "6J2kq6uNCdVI2V1028Gn",
+              "type": "string"
+            },
+            {
+              "id": "1b021143-0fc5-4a4d-ba34-bb1d6ed0a981",
+              "name": "calender id",
+              "value": "FSvK9D0kcaZr8TIRXTkv",
+              "type": "string"
+            },
+            {
+              "id": "597f9058-fea7-45d5-82c7-91840001180f",
+              "name": "phone",
+              "value": "=+1{{ $json.body.estimate.customer.mobile_number }}",
+              "type": "string"
+            },
+            {
+              "id": "fe78f463-7b0e-4926-b5aa-34df8f33c7e4",
+              "name": "TimeZone",
+              "value": "America/New_York",
+              "type": "string"
+            },
+            {
+              "id": "c74146a9-10dd-402d-9629-6a5d446b33f1",
+              "name": "Version",
+              "value": "2021-07-28",
+              "type": "string"
+            },
+            {
+              "id": "9b98d6d2-592f-4734-b6c9-a580c8c4fbab",
+              "name": "CleanPhone",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "4000c8c5-6e02-4151-8647-062c8d37ac0c",
+              "name": "Start time",
+              "value": "={{ $json.body.estimate.schedule.scheduled_start }}",
+              "type": "string"
+            },
+            {
+              "id": "a50f0b4b-b5dd-4bd8-862c-944ebcd1d7b9",
+              "name": "first_name",
+              "value": "={{ $json.body.estimate.customer.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "7ae596cb-68f6-4926-a549-ea530ed27d1b",
+              "name": "last_name",
+              "value": "={{ $json.body.estimate.customer.last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "35d9ec14-f34f-4bbd-8839-7ea66153e379",
+              "name": "company_name",
+              "value": "={{ $json.body.estimate.customer.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4f480fc3-f587-48d0-a5cc-3b729294fd9b",
+              "name": "email",
+              "value": "={{ $json.body.estimate.customer.email }}",
+              "type": "string"
+            },
+            {
+              "id": "ba2210d5-3d15-43b7-bbcd-6925990de499",
+              "name": "kind",
+              "value": "={{ $json.body.estimate.customer.kind }}",
+              "type": "string"
+            },
+            {
+              "id": "0a1294a6-6990-403a-bf44-c73693c508ed",
+              "name": "startTime",
+              "value": "={{ \n  (() => {   \n    const input = $json.body.estimate.schedule.scheduled_start;   \n    if (!input) return null;    \n    const date = new Date(input);    \n    const pad = (n) => String(n).padStart(2, \"0\");    \n    const yyyy = date.getUTCFullYear();   \n    const mm = pad(date.getUTCMonth() + 1);   \n    const dd = pad(date.getUTCDate());   \n    const hh = pad(date.getUTCHours());   \n    const min = pad(date.getUTCMinutes());   \n    const ss = pad(date.getUTCSeconds());    \n    return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}-04:00`; \n  })() \n}}",
+              "type": "string"
+            },
+            {
+              "id": "ee5d8c2c-7a4c-4d6f-8205-4cd09226bdb1",
+              "name": "work_status",
+              "value": "={{ $json.body.estimate.work_status }}",
+              "type": "string"
+            },
+            {
+              "id": "af86e3b7-f1a2-432d-93b1-b5b41f8bc006",
+              "name": "tags",
+              "value": "={{ $json.body.estimate.customer.tags }}",
+              "type": "array"
+            },
+            {
+              "id": "0e678353-8619-47d5-9b5c-44eca6486dee",
+              "name": "estimate_number",
+              "value": "={{ $json.body.estimate.estimate_number }}",
+              "type": "string"
+            },
+            {
+              "id": "09844fbe-4153-43d7-bee8-afad9be4b31d",
+              "name": "total_amount",
+              "value": "={{ $json.body.estimate.options[0].total_amount }}",
+              "type": "string"
+            },
+            {
+              "id": "fff4125b-4e22-4680-a1ca-0d54a50a6e87",
+              "name": "Pipeline_id",
+              "value": "4QkPnglhkYSm893QnOJe",
+              "type": "string"
+            },
+            {
+              "id": "6e428925-430a-4b31-a7db-94cef5c2a5a4",
+              "name": "stages_id",
+              "value": "c169870b-63cd-4608-8131-f9542e79a68b",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1712, 240],
+      "id": "2858dd44-20bd-42ce-88e3-8ba8d8bc5974",
+      "name": "GHL Core Data",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/contacts/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "={{ $('GHL Core Data').first().json.Version }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"locationId\": \"{{ $('GHL Core Data').first().json['location id'] }}\",\n  \"page\": 1,\n  \"pageLimit\": 20,\n  \"filters\": [\n    {\n      \"field\": \"phone\",\n      \"operator\": \"eq\",\n      \"value\": \"{{ $('GHL Core Data').first().json.phone }}\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "name": "GHL - Search Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-1040, 240],
+      "id": "b156e649-6e45-441c-8604-b750bfde9df5",
+      "retryOnFail": false,
+      "maxTries": 2,
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "NbML98NVW1CNtcZQ",
+          "name": "Multiple Headers Auth account GHL"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "435ba85f-edf2-42ed-a32d-147272da7232",
+              "leftValue": "={{ $json.total }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-816, 240],
+      "id": "ae2b3797-3be9-40c4-9722-7fdf53ccdd08",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/contacts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "={{ $('GHL Core Data').first().json.Version }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"name\": \"{{ $('GHL Core Data').first().json.first_name }} {{ $('GHL Core Data').first().json.last_name }}\",\n\"locationId\": \"{{ $('GHL Core Data').first().json['location id'] }}\",\n\"phone\": \"{{ $('GHL Core Data').first().json.phone }}\",\n\"email\": \"{{ $('GHL Core Data').first().json.email }}\",\n\"source\": \"housecallpro\",\n\"tags\":[\"hcp appointment\"]\n}",
+        "options": {}
+      },
+      "name": "GHL - Create Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-592, 336],
+      "id": "b8dea9ed-2c7d-45b4-a94a-1f104623a5a7",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "NbML98NVW1CNtcZQ",
+          "name": "Multiple Headers Auth account GHL"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://services.leadconnectorhq.com/opportunities/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "location_id",
+              "value": "={{ $('GHL Core Data').first().json['location id'] }}"
+            },
+            {
+              "name": "contact_id",
+              "value": "={{ $('If2').first().json.contacts[0].id ?? $('GHL - Create Contact').first().json.contact.id }}"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "limit",
+              "value": "20"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "={{ $('GHL Core Data').first().json.Version }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "GHL - Search Opportunity1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-592, 144],
+      "id": "6677af33-54c3-4c26-a25d-a255e0e48ce6",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "NbML98NVW1CNtcZQ",
+          "name": "Multiple Headers Auth account GHL"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "leftValue": "={{ $json.meta.total }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-368, 144],
+      "id": "5b8cc8a8-09ba-40a2-a500-7cc29a0547dc",
+      "name": "Opportunity Exists?1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/opportunities/",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "={{ $('GHL Core Data').first().json.Version }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"pipelineId\": \"{{ $('GHL Core Data').first().json.Pipeline_id }}\",\n  \"locationId\": \"{{ $('GHL Core Data').first().json['location id'] }}\",\n  \"name\": \"Estimate #{{ $('GHL Core Data').first().json.estimate_number }} - {{ $('GHL Core Data').first().json.first_name }} {{ $('GHL Core Data').first().json.last_name }}\",\n  \"pipelineStageId\": \"{{ $('GHL Core Data').first().json.stages_id }}\",\n  \"status\": \"open\",\n  \"contactId\": \"{{ $('GHL - Search Contact').first().json.contacts[0].id ?? $('GHL - Create Contact').first().json.contact.id }}\",\n  \"monetaryValue\": {{ $('GHL Core Data').item.json.total_amount }},\n  \"source\": \"housecallpro\",\n  \"customFields\": [\n    {\n      \"key\": \"work_status\",\n      \"field_value\": \"{{ $('GHL Core Data').first().json.work_status }}\"\n    },\n    {\n      \"key\": \"estimate_number\",\n      \"field_value\": \"{{ $('GHL Core Data').item.json.estimate_number }}\"\n    },\n    {\n      \"key\": \"scheduled_start\",\n      \"field_value\": \"{{ $('GHL Core Data').first().json.startTime }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "name": "GHL - Create Opportunity2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-144, 240],
+      "id": "f9b6da15-eed4-4f72-8359-933babdd669e",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "NbML98NVW1CNtcZQ",
+          "name": "Multiple Headers Auth account GHL"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/opportunities/",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "={{ $('GHL Core Data').first().json.Version }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"pipelineId\": \"{{ $('GHL Core Data').first().json.Pipeline_id }}\",\n  \"locationId\": \"{{ $('GHL Core Data').first().json['location id'] }}\",\n  \"name\": \"Estimate #{{ $('GHL Core Data').item.json.estimate_number }} - {{ $('GHL Core Data').first().json.first_name }} {{ $('GHL Core Data').first().json.last_name }}\",\n  \"pipelineStageId\": \"{{ $('GHL Core Data').first().json.stages_id }}\",\n  \"status\": \"open\",\n  \"contactId\": \"{{ $('GHL - Create Contact').first().json.contacts[0].id ?? $('GHL - Create Contact').first().json.contact.id }}\",\n  \"monetaryValue\": {{ $('GHL Core Data').item.json.total_amount }},\n  \"source\": \"housecallpro\",\n  \"customFields\": [\n    {\n      \"key\": \"work_status\",\n      \"field_value\": \"{{ $('GHL Core Data').first().json.work_status }}\"\n    },\n    {\n      \"key\": \"estimate_number\",\n      \"field_value\": \"{{ $('GHL Core Data').item.json.estimate_number }}\"\n    },\n    {\n      \"key\": \"scheduled_start\",\n      \"field_value\": \"{{ $('GHL Core Data').first().json.startTime }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "name": "GHL - Create Opportunity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-368, 336],
+      "id": "98dc7ac5-38fd-4f8c-af34-e2e3d6ad59da",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "NbML98NVW1CNtcZQ",
+          "name": "Multiple Headers Auth account GHL"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('GHL - Search Contact').first().json.contacts[0].id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpMultipleHeadersAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "={{ $('GHL Core Data').first().json.Version }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tags\": [{{ $json.data }}]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [80, 48],
+      "id": "af100713-af1a-429e-a939-8ed7ea893f35",
+      "name": "Add Tag to GHL \"2nd day call\"",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "NbML98NVW1CNtcZQ",
+          "name": "Multiple Headers Auth account GHL"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet data=[];\nfor (const item of  $('GHL - Search Contact').first().json.contacts[0].tags) {\n  data.push(`\"${item}\"`)\n}\nif ($('Code in JavaScript').first().json.Approve) {\ndata.push(`\"estimate approved\"`);\n}else{\n data.push(`\"job canceled\"`); \n}\ndata = [...new Set(data)];\nreturn {data:data};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-144, 48],
+      "id": "e44654f5-9efd-4391-9c18-0d688afa171c",
+      "name": "Code in JavaScript8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f33619b6-db0b-419b-8ce1-61c986f388c5",
+              "leftValue": "={{ $json.tags }}",
+              "rightValue": "test user",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-1488, 240],
+      "id": "433d377c-96b3-4981-bd65-5056496737e6",
+      "name": "If",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet Approve=false;\nfor (const item of $('Webhook').first().json.body.estimate.options) {\n  if (item.approval_status=='approved') {\n   Approve=true;\n  }\n}\n\nreturn {Approve:Approve,...$input.all()};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1264, 240],
+      "id": "a1eb92c7-719f-4e28-8caf-2d7f89c7e0a0",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B8ZPM1ZFB",
+          "mode": "list",
+          "cachedResultName": "isael-grandeairsolutions"
+        },
+        "text": "=Hi, New Estimate Approved via HouseCallPro. \nCustomer Details \nName: {{ $('GHL Core Data').first().json.first_name }} {{ $('GHL Core Data').first().json.last_name }} \nPhone: {{ $('GHL Core Data').first().json.phone }} \nEmail: {{ $('GHL Core Data').first().json.email }}\nEstimate Number: {{ $('GHL Core Data').first().json.estimate_number }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [528, 272],
+      "id": "32826c8d-812b-40dd-adc1-63f28b20caef",
+      "name": "Send a message",
+      "webhookId": "0123405a-a49c-422d-a96a-fd609e714e9a",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "xq6mOzhcH7qrVz4Y",
+          "name": "Slack- Manam"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BCJM86GAZ",
+          "mode": "list",
+          "cachedResultName": "manam-test"
+        },
+        "text": "=Hi, New Estimate Approved via HouseCallPro. \nCustomer Details \nName: {{ $('GHL Core Data').first().json.first_name }} {{ $('GHL Core Data').first().json.last_name }} \nPhone: {{ $('GHL Core Data').first().json.phone }} \nEmail: {{ $('GHL Core Data').first().json.email }} \nEstimate Number: {{ $('GHL Core Data').first().json.estimate_number }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [752, 272],
+      "id": "f1a599b7-2413-41ea-861b-a79d6b33eced",
+      "name": "Send a message1",
+      "webhookId": "0123405a-a49c-422d-a96a-fd609e714e9a",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "owh5W54aZzSa53x2",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "estimates",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "hcp_estimate_id",
+              "keyValue": "={{ $('Webhook').item.json.body.estimate.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "estimate_status",
+              "fieldValue": "={{ $('Code in JavaScript').first().json.Approve ? 'approved' : 'declined' }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-1040, 400],
+      "id": "bb000001-0000-0000-0000-000000000001",
+      "name": "Supabase - Update Estimate Status",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Vdwc2a9G9smOaulO",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "GHL Core Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL Core Data": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Search Contact": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "GHL - Search Opportunity1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GHL - Create Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Create Contact": {
+      "main": [
+        [
+          {
+            "node": "GHL - Create Opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Search Opportunity1": {
+      "main": [
+        [
+          {
+            "node": "Opportunity Exists?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Opportunity Exists?1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GHL - Create Opportunity2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Create Opportunity2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL - Create Opportunity": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Tag to GHL \"2nd day call\"": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript8": {
+      "main": [
+        [
+          {
+            "node": "Add Tag to GHL \"2nd day call\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "GHL - Search Contact",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Update Estimate Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "n8n.srv1300653.hstgr.cloud",
+          "user-agent": "Make/production",
+          "content-length": "2736",
+          "accept": "application/json, text/plain, */*",
+          "accept-encoding": "gzip, compress, deflate, br",
+          "content-type": "application/json",
+          "traceparent": "00-6a14019f000000003ecf64b32a1b2a29-3ecf64b32a1b2a29-00",
+          "tracestate": "dd=t.ksr:0.0323054;t.tid:6a14019f00000000;t.dm:-1;s:0;p:3ecf64b32a1b2a29",
+          "x-datadog-parent-id": "4525946871198984745",
+          "x-datadog-sampling-priority": "0",
+          "x-datadog-tags": "_dd.p.tid=6a14019f00000000,_dd.p.ksr=0.0323054",
+          "x-datadog-trace-id": "4525946871198984745",
+          "x-forwarded-for": "44.209.150.16",
+          "x-forwarded-host": "n8n.srv1300653.hstgr.cloud",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "caad0300a5ff",
+          "x-real-ip": "44.209.150.16"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "event": "estimate.option.approval_status_changed",
+          "event_occurred_at": "2026-05-25T07:48:00Z",
+          "company_id": "e594988c-2c9b-46af-a087-8faecf064dbc",
+          "estimate": {
+            "id": "csr_402c0a4232dd46e5820cbb3fe88f3e75",
+            "estimate_number": "5920",
+            "work_status": "needs scheduling",
+            "lead_source": null,
+            "customer": {
+              "id": "cus_5413458e3e244565bc26595e65ae54c5",
+              "first_name": "Test",
+              "last_name": "User",
+              "email": "test.user01@mail.com",
+              "mobile_number": "7894561230",
+              "home_number": null,
+              "work_number": null,
+              "company": null,
+              "notifications_enabled": true,
+              "lead_source": null,
+              "notes": null,
+              "kind": "homeowner",
+              "created_at": "2026-05-25T06:18:58Z",
+              "updated_at": "2026-05-25T06:18:58Z",
+              "company_name": "Grande Air Solutions",
+              "company_id": "e594988c-2c9b-46af-a087-8faecf064dbc",
+              "tags": []
+            },
+            "address": {
+              "id": "adr_2d1b048147844b14a3464ef9eebf15fc",
+              "type": "billing",
+              "street": "badda",
+              "street_line_2": null,
+              "city": "Dhaka",
+              "state": null,
+              "zip": "1212",
+              "country": null
+            },
+            "created_at": "2026-05-25T07:45:55Z",
+            "updated_at": "2026-05-25T07:45:55Z",
+            "company_name": "Grande Air Solutions",
+            "company_id": "e594988c-2c9b-46af-a087-8faecf064dbc",
+            "work_timestamps": {
+              "on_my_way_at": null,
+              "started_at": null,
+              "completed_at": null
+            },
+            "schedule": {
+              "scheduled_start": null,
+              "scheduled_end": null,
+              "arrival_window": 0,
+              "appointments": []
+            },
+            "assigned_employees": [],
+            "estimate_fields": {
+              "job_type": null,
+              "business_unit": null
+            },
+            "assigned_route_template_id": null,
+            "options": [
+              {
+                "id": "est_a6ec534d51b84ab1abe9d6c8673329f4",
+                "name": "Option #1",
+                "option_number": "5920",
+                "total_amount": 100,
+                "approval_status": "declined",
+                "status": "submitted for signoff",
+                "message_from_pro": "****\nALL ESTIMATES VALID FOR 30 DAYS -\n$500 DEPOSIT\nNON REFUNDABLE DEPOSIT for any cancellation. This will apply to any restocking fees. \n\nInstall dates or equipment brand may change due to unprecedented material and equipment shortages.\nManufactures will furnish a replacement part, without charge for part only, to replace any part that is found to be defective due to workmanship or materials under normal use and maintenance of a licensed HVAC technician. Furnishing of the replacement part is the only responsibility under this warranty and the furnishing of the replacement is the owners only remedy.\n\nIt is customer responsibility to register all equipment with manufacturer within 30 days of all installs. \n\nASK US ABOUT Bi- Annual Maintenance and Indoor Air Quality Products~\n\nYou may cancel this transaction without any penalty within Three Business Day of the signed contract.\n\nLow Interest Financing options: https://www.grandeairsolutions.com/financing/\n\n\nP.O. Box 12157 Austin Tx 78711, 1.800.803.9202, 512-463-6599, www.tdlr.texas.gov",
+                "tags": [],
+                "notes": [],
+                "created_at": "2026-05-25T07:45:55Z",
+                "updated_at": "2026-05-25T07:48:00Z",
+                "attachments": []
+              }
+            ]
+          }
+        },
+        "webhookUrl": "https://n8n.srv1300653.hstgr.cloud/webhook/estimate-approved",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "instanceId": "e980cea3bd34ebd8560767f4ac9f2241ef5b52e2c8125a8a2615b0944d1865f9"
+  }
+}

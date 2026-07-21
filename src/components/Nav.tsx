@@ -8,7 +8,8 @@ import { useTransition } from "react";
 import { logoutAction } from "@/app/actions/auth";
 
 const links = [
-  { href: "/", label: "Live Dashboard" },
+  { href: "/",          label: "Live Dashboard" },
+  { href: "/scorecard", label: "Scorecard" },
 ];
 
 export default function Nav() {

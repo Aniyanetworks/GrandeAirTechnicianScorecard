@@ -602,7 +602,7 @@ export default function DashboardPage() {
   const lastWkJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= lwS && d < lwE; }), [jobs, lwS, lwE]);
   const thisWkEsts = useMemo(() => estimates.filter(e => { const d = new Date(e.created_at); return d >= twS && d < twE; }), [estimates, twS, twE]);
   const lastWkEsts = useMemo(() => estimates.filter(e => { const d = new Date(e.created_at); return d >= lwS && d < lwE; }), [estimates, lwS, lwE]);
-  const thisWkEstVal = useMemo(() => thisWkEsts.reduce((s, e) => s + (e.total_amount ?? 0), 0), [thisWkEsts]);
+  const thisWkEstVal = useMemo(() => thisWkEsts.reduce((s, e) => s + ((e.total_amount ?? 0) / 100), 0), [thisWkEsts]);
 
   // ── Monthly earnings ──────────────────────────────────────────────────────
   const [tmS, tmE] = useMemo(() => monthRange(0),  []);
@@ -611,8 +611,8 @@ export default function DashboardPage() {
   const thisMoJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= tmS && d < tmE; }), [jobs, tmS, tmE]);
   const lastMoJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= lmS && d < lmE; }), [jobs, lmS, lmE]);
 
-  const thisMoEarnings = useMemo(() => thisMoJobs.reduce((s, j) => s + (j.subtotal ?? 0), 0), [thisMoJobs]);
-  const lastMoEarnings = useMemo(() => lastMoJobs.reduce((s, j) => s + (j.subtotal ?? 0), 0), [lastMoJobs]);
+  const thisMoEarnings = useMemo(() => thisMoJobs.reduce((s, j) => s + ((j.subtotal ?? 0) / 100), 0), [thisMoJobs]);
+  const lastMoEarnings = useMemo(() => lastMoJobs.reduce((s, j) => s + ((j.subtotal ?? 0) / 100), 0), [lastMoJobs]);
 
   // ── Technician breakdown ──────────────────────────────────────────────────
   const availableMonths = useMemo(() => {
@@ -633,7 +633,7 @@ export default function DashboardPage() {
       if (!map.has(key)) map.set(key, { id: key, name, jobCount: 0, jobEarnings: 0, estCount: 0, estValue: 0 });
       const r = map.get(key)!;
       r.jobCount++;
-      r.jobEarnings += j.subtotal ?? 0;
+      r.jobEarnings += (j.subtotal ?? 0) / 100;
     });
     fe.forEach(e => {
       if (!e.user_id || !e.user_name) return;
@@ -642,7 +642,7 @@ export default function DashboardPage() {
       if (!map.has(key)) map.set(key, { id: key, name, jobCount: 0, jobEarnings: 0, estCount: 0, estValue: 0 });
       const r = map.get(key)!;
       r.estCount++;
-      r.estValue += e.total_amount ?? 0;
+      r.estValue += (e.total_amount ?? 0) / 100;
     });
     return Array.from(map.values()).sort((a, b) => b.jobEarnings - a.jobEarnings || b.jobCount - a.jobCount);
   }, [jobs, estimates, techMonth]);
@@ -747,7 +747,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard
           label="Total Jobs"  value={totalJobCount} sub="all appointments"
           icon="🔧" iconBg="bg-slate-100" iconColor="text-slate-700"
