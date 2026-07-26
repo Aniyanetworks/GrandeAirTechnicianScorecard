@@ -1,4 +1,11 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/login/page": "app/login/page.js",
+  "/(dashboard)/monthly/page": "app/(dashboard)/monthly/page.js",
+  "/(dashboard)/scorecard/page": "app/(dashboard)/scorecard/page.js",
+  "/(dashboard)/kpi-definitions/page": "app/(dashboard)/kpi-definitions/page.js",
+  "/(dashboard)/manager/page": "app/(dashboard)/manager/page.js",
+  "/(dashboard)/weekly/page": "app/(dashboard)/weekly/page.js",
   "/(dashboard)/page": "app/(dashboard)/page.js",
-  "/(dashboard)/scorecard/page": "app/(dashboard)/scorecard/page.js"
+  "/(dashboard)/quarterly/page": "app/(dashboard)/quarterly/page.js"
 }

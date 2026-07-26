@@ -4,8 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { useTransition } from "react";
-import { logoutAction } from "@/app/actions/auth";
+import { clientLogout } from "@/lib/auth";
 
 const links = [
   { href: "/",          label: "Live Dashboard" },
@@ -15,14 +14,11 @@ const links = [
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const isPending = false;
 
   function handleLogout() {
-    startTransition(async () => {
-      await logoutAction();
-      router.push("/login");
-      router.refresh();
-    });
+    clientLogout();
+    router.push("/login");
   }
 
   return (

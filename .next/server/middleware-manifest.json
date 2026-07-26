@@ -8,17 +8,15 @@
       ],
       "name": "src/middleware",
       "page": "/",
-      "matchers": [
-        {
-          "regexp": "^/.*$",
-          "originalSource": "/:path*"
-        }
-      ],
+      "matchers": [],
       "wasm": [],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "development",
-        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "nkbTAiBEwOj5S+FCQntsO4vIgyxHlCKcLMEsO8Ma1Hc="
+        "__NEXT_BUILD_ID": "fyZcvBY0PUd5dXusM1R0p",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "c5P8w3MT6JO7AYt+zNukW28L5A7DUdLG9x1SxP0d9yg=",
+        "__NEXT_PREVIEW_MODE_ID": "0b231a03bf8a4f62e81ba23167594449",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "10f58a553e5e98110a6f618e3f4a992bb7192cabc9b1c946da1b2c3bd4265e47",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "30f5d33199063c8ee3858500cbe4c44a55652145f2ee77b849b0e863d562cc23"
       }
     }
   },

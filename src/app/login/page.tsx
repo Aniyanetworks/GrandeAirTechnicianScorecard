@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff, Lock, Mail, LogIn } from "lucide-react";
-import { loginAction } from "@/app/actions/auth";
+import { clientLogin } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,21 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-
-    startTransition(async () => {
-      const result = await loginAction(email, password);
-      if (result.success) {
-        router.push("/");
-        router.refresh();
-      } else {
-        setError(result.error ?? "Login failed.");
-      }
-    });
+    setIsPending(true);
+    const result = clientLogin(email, password);
+    setIsPending(false);
+    if (result.success) {
+      router.push("/");
+    } else {
+      setError(result.error ?? "Login failed.");
+    }
   }
 
   return (
