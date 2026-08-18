@@ -140,7 +140,7 @@
             {
               "id": "est-status-001",
               "name": "estimate_status",
-              "value": "={{ $json.body.estimate.work_status }}",
+              "value": "={{ (($json.body.estimate.work_status || '').toLowerCase().trim() || 'pending') }}",
               "type": "string"
             }
           ]

@@ -7,6 +7,7 @@ export async function loginAction(
   email: string,
   password: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD, process.env.AUTH_SECRET);
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
   const secret = process.env.AUTH_SECRET ?? "gsa-aniya-2026-x9k";

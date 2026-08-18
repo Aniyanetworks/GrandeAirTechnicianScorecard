@@ -61,7 +61,7 @@ type Tab       = "jobs" | "estimates" | "technicians";
 
 function fmtDT(d: string) {
   return new Date(d).toLocaleString("en-US", {
-    month: "short", day: "numeric",
+    year: "numeric", month: "short", day: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
 }
@@ -567,22 +567,40 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const jr = await supabase
-        .from("appointments")
-        .select("id,name,phone,email,call_summary_id,appointment_requested,appointment_status,subtotal,created_at,user_name,user_id", { count: "exact" })
-        .order("created_at", { ascending: false });
-      if (jr.error) throw new Error(`appointments: ${jr.error.message}`);
+      const PAGE_SIZE = 1000;
 
-      const er = await supabase
-        .from("estimates")
-        .select("id,name,phone,email,call_summary_id,estimate_requested,estimate_status,total_amount,created_at,user_name,user_id", { count: "exact" })
-        .order("created_at", { ascending: false });
-      if (er.error) throw new Error(`estimates: ${er.error.message}`);
+      async function fetchAllRows<T>(table: string, columns: string): Promise<{ rows: T[]; count: number }> {
+        const rows: T[] = [];
+        let count = 0;
+        let from = 0;
+        for (;;) {
+          const res = await supabase
+            .from(table)
+            .select(columns, { count: "exact" })
+            .order("created_at", { ascending: false })
+            .range(from, from + PAGE_SIZE - 1);
+          if (res.error) throw new Error(`${table}: ${res.error.message}`);
+          rows.push(...((res.data ?? []) as T[]));
+          count = res.count ?? rows.length;
+          if (res.data === null || res.data.length < PAGE_SIZE || rows.length >= count) break;
+          from += PAGE_SIZE;
+        }
+        return { rows, count };
+      }
 
-      setJobs((jr.data ?? []) as Job[]);
-      setEstimates((er.data ?? []) as Estimate[]);
-      setTotalJobCount(jr.count ?? jr.data?.length ?? 0);
-      setTotalEstCount(er.count ?? er.data?.length ?? 0);
+      const jr = await fetchAllRows<Job>(
+        "appointments",
+        "id,name,phone,email,call_summary_id,appointment_requested,appointment_status,subtotal,created_at,user_name,user_id"
+      );
+      const er = await fetchAllRows<Estimate>(
+        "estimates",
+        "id,name,phone,email,call_summary_id,estimate_requested,estimate_status,total_amount,created_at,user_name,user_id"
+      );
+
+      setJobs(jr.rows);
+      setEstimates(er.rows);
+      setTotalJobCount(jr.count);
+      setTotalEstCount(er.count);
       setUpdatedAt(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -991,7 +1009,7 @@ export default function DashboardPage() {
                   <td className="px-4 py-3.5"><SourceBadge ai={!!j.call_summary_id} /></td>
                   <td className="px-4 py-3.5"><ReqBadge yes={j.appointment_requested} /></td>
                   <td className="px-4 py-3.5 font-bold text-slate-900">
-                    {j.subtotal != null ? fmtMoney(j.subtotal) : <span className="text-slate-300 font-normal text-xs">—</span>}
+                    {j.subtotal != null ? fmtMoney(j.subtotal / 100) : <span className="text-slate-300 font-normal text-xs">—</span>}
                   </td>
                   <td className="px-4 py-3.5"><StatusBadge status={j.appointment_status} /></td>
                 </tr>
@@ -1027,7 +1045,7 @@ export default function DashboardPage() {
                   <td className="px-4 py-3.5"><SourceBadge ai={!!e.call_summary_id} /></td>
                   <td className="px-4 py-3.5"><ReqBadge yes={e.estimate_requested} /></td>
                   <td className="px-4 py-3.5 font-bold text-slate-900">
-                    {e.total_amount != null ? fmtMoney(e.total_amount) : <span className="text-slate-300 font-normal text-xs">—</span>}
+                    {e.total_amount != null ? fmtMoney(e.total_amount / 100) : <span className="text-slate-300 font-normal text-xs">—</span>}
                   </td>
                   <td className="px-4 py-3.5"><StatusBadge status={e.estimate_status} /></td>
                 </tr>

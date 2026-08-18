@@ -2,6 +2,9 @@
 const nextConfig = {
   output: "export",
   distDir: "output",
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

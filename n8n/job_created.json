@@ -158,7 +158,7 @@
             {
               "id": "appt-status-001",
               "name": "appointment_status",
-              "value": "={{ $json.body.job.work_status }}",
+              "value": "={{ (($json.body.job.work_status || '').toLowerCase().trim() || 'pending') }}",
               "type": "string"
             }
           ]

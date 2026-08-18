@@ -562,7 +562,7 @@
           "fieldValues": [
             {
               "fieldId": "appointment_status",
-              "fieldValue": "={{ $('GHL Core Data').first().json.work_status }}"
+              "fieldValue": "={{ (($('GHL Core Data').first().json.work_status || '').toLowerCase().trim() || 'pending') }}"
             },
             {
               "fieldId": "subtotal",

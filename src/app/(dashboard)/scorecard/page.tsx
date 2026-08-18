@@ -91,8 +91,8 @@ function fmtMonth(k: string) {
 
 // ── Status values from HousecallPro ──────────────────────────────────────────
 
-const COMPLETED_STATUSES = new Set(["complete unrated","complete","completed","done","finished","closed","unrated"]);
-const SOLD_STATUSES      = new Set(["approved","won","accepted","sold","closed","converted"]);
+const COMPLETED_STATUSES = new Set(["complete unrated","complete rated","complete","completed","done","finished","closed","unrated"]);
+const SOLD_STATUSES      = new Set(["created job from estimate","complete rated","complete unrated","approved","won","accepted","sold","closed","converted"]);
 
 // ── Supabase types ────────────────────────────────────────────────────────────
 
