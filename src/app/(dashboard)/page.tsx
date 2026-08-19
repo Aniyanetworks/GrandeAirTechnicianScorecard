@@ -569,7 +569,7 @@ export default function DashboardPage() {
     try {
       const PAGE_SIZE = 1000;
 
-      async function fetchAllRows<T>(table: string, columns: string): Promise<{ rows: T[]; count: number }> {
+      const fetchAllRows = async <T,>(table: string, columns: string): Promise<{ rows: T[]; count: number }> => {
         const rows: T[] = [];
         let count = 0;
         let from = 0;
@@ -586,7 +586,7 @@ export default function DashboardPage() {
           from += PAGE_SIZE;
         }
         return { rows, count };
-      }
+      };
 
       const jr = await fetchAllRows<Job>(
         "appointments",
