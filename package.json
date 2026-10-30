@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync:hcp": "node --env-file=.env scripts/sync-hcp-estimates.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

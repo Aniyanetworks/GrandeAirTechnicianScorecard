@@ -13,6 +13,7 @@ import {
   TooltipProps,
 } from "recharts";
 import { supabase } from "@/lib/supabase";
+import WonRevenue, { useWonEstimates, useWonStats, fmtMoney as fmtWon } from "@/components/WonRevenue";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ interface TechRow {
 
 type QuickDate = "all" | "week" | "month" | "last_month";
 type Source    = "all" | "ai" | "direct";
-type Tab       = "jobs" | "estimates" | "technicians";
+type Tab       = "jobs" | "estimates" | "technicians" | "won";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -439,9 +440,9 @@ function TableCard({ title, count, total, page, pages, children, onPageChange }:
 // ── Section Selector Card ─────────────────────────────────────────────────────
 
 function SectionTab({
-  type, active, count, weekCount, aiCount, recentName, onClick, totalEarnings,
+  type, active, count, weekCount, aiCount, recentName, onClick, totalEarnings, won,
 }: {
-  type: "jobs" | "estimates" | "technicians";
+  type: "jobs" | "estimates" | "technicians" | "won";
   active: boolean;
   count: number;
   weekCount: number;
@@ -449,13 +450,15 @@ function SectionTab({
   recentName: string | null;
   onClick: () => void;
   totalEarnings?: number;
+  won?: { today: number; week: number; month: number };
 }) {
   const isTech  = type === "technicians";
   const isJob   = type === "jobs";
-  const accent  = isTech ? "#7c3aed" : isJob ? "#1e3a5f" : "#0d9488";
-  const label   = isTech ? "Technicians" : isJob ? "Jobs / Appointments" : "Estimates";
-  const icon    = isTech ? "👷" : isJob ? "🔧" : "📋";
-  const hoverBg = isTech ? "hover:border-violet-300" : isJob ? "hover:border-[#1e3a5f]/30" : "hover:border-[#0d9488]/30";
+  const isWon   = type === "won";
+  const accent  = isTech ? "#7c3aed" : isJob ? "#1e3a5f" : isWon ? "#059669" : "#0d9488";
+  const label   = isTech ? "Technicians" : isJob ? "Jobs / Appointments" : isWon ? "Revenue Won" : "Estimates";
+  const icon    = isTech ? "👷" : isJob ? "🔧" : isWon ? "🏆" : "📋";
+  const hoverBg = isTech ? "hover:border-violet-300" : isJob ? "hover:border-[#1e3a5f]/30" : isWon ? "hover:border-emerald-300" : "hover:border-[#0d9488]/30";
 
   return (
     <button
@@ -500,7 +503,22 @@ function SectionTab({
       </div>
 
       {/* Stats row */}
-      {isTech ? (
+      {isWon ? (
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          <div className="pr-4">
+            <p className="text-lg font-black text-slate-900 leading-none truncate">{fmtWon(won?.today ?? 0)}</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Today</p>
+          </div>
+          <div className="px-4">
+            <p className="text-lg font-black leading-none truncate" style={{ color: active ? accent : "#334155" }}>{fmtWon(won?.week ?? 0)}</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">This week</p>
+          </div>
+          <div className="pl-4">
+            <p className="text-lg font-black text-emerald-600 leading-none truncate">{fmtWon(won?.month ?? 0)}</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">This month</p>
+          </div>
+        </div>
+      ) : isTech ? (
         <div className="grid grid-cols-3 divide-x divide-slate-100">
           <div className="pr-4">
             <p className="text-2xl font-black text-slate-900 leading-none">{count}</p>
@@ -562,6 +580,8 @@ export default function DashboardPage() {
   const [jobPage,       setJobPage]   = useState(1);
   const [estPage,       setEstPage]   = useState(1);
   const [techMonth,     setTechMonth] = useState<string>("all");
+  const wonData  = useWonEstimates();
+  const wonStats = useWonStats(wonData.estimates).stats;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -826,7 +846,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Section selector cards ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <SectionTab
           type="jobs" active={tab === "jobs"}
           count={totalJobCount} weekCount={thisWkJobs.length} aiCount={aiJobs}
@@ -848,7 +868,21 @@ export default function DashboardPage() {
           totalEarnings={techTotalEarnings}
           onClick={() => setTab("technicians")}
         />
+        <SectionTab
+          type="won" active={tab === "won"}
+          count={0} weekCount={0} aiCount={0} recentName={null}
+          won={{ today: wonStats.today.cur.total, week: wonStats.week.cur.total, month: wonStats.month.cur.total }}
+          onClick={() => setTab("won")}
+        />
       </div>
+
+      {/* ── Revenue won ────────────────────────────────────────────────── */}
+      {tab === "won" && (
+        <WonRevenue
+          estimates={wonData.estimates} loading={wonData.loading} error={wonData.error}
+          updatedAt={wonData.updatedAt} onRefresh={wonData.reload}
+        />
+      )}
 
       {/* ── Technician earnings ────────────────────────────────────────── */}
       {tab === "technicians" && (
@@ -973,7 +1007,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Shared filter bar (jobs / estimates only) ───────────────────── */}
-      {tab !== "technicians" && (
+      {tab !== "technicians" && tab !== "won" && (
       <FilterBar
         search={search} onSearch={setSearch}
         quickDate={quickDate} onDate={setQuickDate}
