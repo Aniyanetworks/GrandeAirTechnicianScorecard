@@ -1,0 +1,327 @@
+{
+  "name": "HCP_Sync_Recent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -600,
+        0
+      ],
+      "id": "bb000000-0000-0000-0000-000000000001",
+      "name": "Every 30 minutes"
+    },
+    {
+      "parameters": {
+        "url": "https://api.housecallpro.com/jobs",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "page_size",
+              "value": "100"
+            },
+            {
+              "name": "sort_direction",
+              "value": "desc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -340,
+        -140
+      ],
+      "id": "bb000001-0000-0000-0000-000000000001",
+      "name": "HCP - Recent Jobs",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "HousecallPro API (Authorization: Token ...)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per HCP job: who it is assigned to now, its current status and subtotal.\nconst jobs = $input.first().json.jobs || [];\nreturn jobs.map(j => {\n  const e = (j.assigned_employees || [])[0];\n  return { json: {\n    hcp_job_id: j.id,\n    user_id: e ? e.id : '',\n    user_name: e ? [e.first_name, e.last_name].filter(Boolean).join(' ') : '',\n    appointment_status: ((j.work_status || '').toLowerCase().trim()) || 'pending',\n    subtotal: j.subtotal ?? 0,\n  }};\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        -140
+      ],
+      "id": "bb000002-0000-0000-0000-000000000001",
+      "name": "Map Jobs"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "appointments",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "hcp_job_id",
+              "keyValue": "={{ $json.hcp_job_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.user_id }}"
+            },
+            {
+              "fieldId": "user_name",
+              "fieldValue": "={{ $json.user_name }}"
+            },
+            {
+              "fieldId": "appointment_status",
+              "fieldValue": "={{ $json.appointment_status }}"
+            },
+            {
+              "fieldId": "subtotal",
+              "fieldValue": "={{ $json.subtotal }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        140,
+        -140
+      ],
+      "id": "bb000003-0000-0000-0000-000000000001",
+      "name": "Supabase - Sync Job",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Vdwc2a9G9smOaulO",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://api.housecallpro.com/estimates",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "page_size",
+              "value": "100"
+            },
+            {
+              "name": "sort_direction",
+              "value": "desc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -340,
+        140
+      ],
+      "id": "bb000004-0000-0000-0000-000000000001",
+      "name": "HCP - Recent Estimates",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "HousecallPro API (Authorization: Token ...)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per HCP estimate: current assignee and status.\n// \"approved\" when the client (or the pro on their behalf) approved any option; otherwise HCP's own status.\nconst ests = $input.first().json.estimates || [];\nreturn ests.map(e => {\n  const emp = (e.assigned_employees || [])[0];\n  const won = (e.options || []).some(o => ['approved', 'pro approved'].includes(o.approval_status));\n  return { json: {\n    hcp_estimate_id: e.id,\n    user_id: emp ? emp.id : '',\n    user_name: emp ? [emp.first_name, emp.last_name].filter(Boolean).join(' ') : '',\n    estimate_status: won ? 'approved' : (((e.work_status || '').toLowerCase().trim()) || 'pending'),\n  }};\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        140
+      ],
+      "id": "bb000005-0000-0000-0000-000000000001",
+      "name": "Map Estimates"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "estimates",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "hcp_estimate_id",
+              "keyValue": "={{ $json.hcp_estimate_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.user_id }}"
+            },
+            {
+              "fieldId": "user_name",
+              "fieldValue": "={{ $json.user_name }}"
+            },
+            {
+              "fieldId": "estimate_status",
+              "fieldValue": "={{ $json.estimate_status }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        140,
+        140
+      ],
+      "id": "bb000006-0000-0000-0000-000000000001",
+      "name": "Supabase - Sync Estimate",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Vdwc2a9G9smOaulO",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## HCP -> Supabase sync\nEvery 30 min, takes the 100 newest HCP jobs and estimates and refreshes in Supabase: assigned technician, current status, job subtotal.\nThe existing webhook workflows only write these once (when the job/estimate is created), so later changes in HCP (technician assigned, scheduled, completed, canceled, approved) never reached the dashboard.\n\nBefore activating: open both 'HCP - Recent ...' nodes and choose/create a Header Auth credential: Name = Authorization, Value = Token <HCP API key>.",
+        "height": 200,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        -340
+      ],
+      "id": "bb000009-0000-0000-0000-000000000001",
+      "name": "Note"
+    }
+  ],
+  "connections": {
+    "Every 30 minutes": {
+      "main": [
+        [
+          {
+            "node": "HCP - Recent Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HCP - Recent Estimates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HCP - Recent Jobs": {
+      "main": [
+        [
+          {
+            "node": "Map Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Jobs": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Sync Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HCP - Recent Estimates": {
+      "main": [
+        [
+          {
+            "node": "Map Estimates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Estimates": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Sync Estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "e980cea3bd34ebd8560767f4ac9f2241ef5b52e2c8125a8a2615b0944d1865f9"
+  }
+}

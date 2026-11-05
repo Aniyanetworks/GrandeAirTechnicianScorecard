@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { isCanceled } from "@/lib/hcp";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -164,10 +165,13 @@ export default function ScorecardPage() {
         supabase
           .from("appointments")
           .select("id,subtotal,appointment_status,created_at,user_name,user_id")
+          .not("hcp_job_id", "is", null)
           .order("created_at", { ascending: false }),
         supabase
           .from("estimates")
           .select("id,total_amount,estimate_status,created_at,user_name,user_id")
+          .not("hcp_estimate_id", "is", null)
+          .neq("estimate_status", "pending") // empty estimates HCP itself hides
           .order("created_at", { ascending: false }),
       ]);
       if (jr.error) throw new Error(jr.error.message);
@@ -203,7 +207,8 @@ export default function ScorecardPage() {
 
   // Filtered data for selected tech + month
   const fJobs = useMemo(() => {
-    let r = jobs.filter(j => j.created_at.slice(0, 7) === selectedMonth);
+    // Canceled jobs never happened, so they are left out (same as HCP's default Jobs view)
+    let r = jobs.filter(j => j.created_at.slice(0, 7) === selectedMonth && !isCanceled(j.appointment_status));
     if (selectedTech !== "all") r = r.filter(j => j.user_id === selectedTech);
     return r;
   }, [jobs, selectedMonth, selectedTech]);

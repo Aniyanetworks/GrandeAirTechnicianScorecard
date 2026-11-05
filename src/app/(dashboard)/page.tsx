@@ -13,6 +13,7 @@ import {
   TooltipProps,
 } from "recharts";
 import { supabase } from "@/lib/supabase";
+import { isCanceled } from "@/lib/hcp";
 import WonRevenue, { useWonEstimates, useWonStats, fmtMoney as fmtWon } from "@/components/WonRevenue";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -589,14 +590,18 @@ export default function DashboardPage() {
     try {
       const PAGE_SIZE = 1000;
 
-      const fetchAllRows = async <T,>(table: string, columns: string): Promise<{ rows: T[]; count: number }> => {
+      const fetchAllRows = async <T,>(table: string, columns: string, idCol: string, statusCol?: string): Promise<{ rows: T[]; count: number }> => {
         const rows: T[] = [];
         let count = 0;
         let from = 0;
         for (;;) {
-          const res = await supabase
+          let q = supabase
             .from(table)
             .select(columns, { count: "exact" })
+            .not(idCol, "is", null); // rows without an HCP id are placeholders that never became a real job/estimate
+          // HCP keeps some empty estimates (no options, no status) that its own list hides
+          if (statusCol) q = q.neq(statusCol, "pending");
+          const res = await q
             .order("created_at", { ascending: false })
             .range(from, from + PAGE_SIZE - 1);
           if (res.error) throw new Error(`${table}: ${res.error.message}`);
@@ -610,11 +615,14 @@ export default function DashboardPage() {
 
       const jr = await fetchAllRows<Job>(
         "appointments",
-        "id,name,phone,email,call_summary_id,appointment_requested,appointment_status,subtotal,created_at,user_name,user_id"
+        "id,name,phone,email,call_summary_id,appointment_requested,appointment_status,subtotal,created_at,user_name,user_id",
+        "hcp_job_id"
       );
       const er = await fetchAllRows<Estimate>(
         "estimates",
-        "id,name,phone,email,call_summary_id,estimate_requested,estimate_status,total_amount,created_at,user_name,user_id"
+        "id,name,phone,email,call_summary_id,estimate_requested,estimate_status,total_amount,created_at,user_name,user_id",
+        "hcp_estimate_id",
+        "estimate_status"
       );
 
       setJobs(jr.rows);
@@ -649,8 +657,8 @@ export default function DashboardPage() {
   const thisMoJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= tmS && d < tmE; }), [jobs, tmS, tmE]);
   const lastMoJobs = useMemo(() => jobs.filter(j => { const d = new Date(j.created_at); return d >= lmS && d < lmE; }), [jobs, lmS, lmE]);
 
-  const thisMoEarnings = useMemo(() => thisMoJobs.reduce((s, j) => s + ((j.subtotal ?? 0) / 100), 0), [thisMoJobs]);
-  const lastMoEarnings = useMemo(() => lastMoJobs.reduce((s, j) => s + ((j.subtotal ?? 0) / 100), 0), [lastMoJobs]);
+  const thisMoEarnings = useMemo(() => thisMoJobs.filter(j => !isCanceled(j.appointment_status)).reduce((s, j) => s + ((j.subtotal ?? 0) / 100), 0), [thisMoJobs]);
+  const lastMoEarnings = useMemo(() => lastMoJobs.filter(j => !isCanceled(j.appointment_status)).reduce((s, j) => s + ((j.subtotal ?? 0) / 100), 0), [lastMoJobs]);
 
   // ── Technician breakdown ──────────────────────────────────────────────────
   const availableMonths = useMemo(() => {
@@ -670,6 +678,7 @@ export default function DashboardPage() {
       const name = j.user_name;
       if (!map.has(key)) map.set(key, { id: key, name, jobCount: 0, jobEarnings: 0, estCount: 0, estValue: 0 });
       const r = map.get(key)!;
+      if (isCanceled(j.appointment_status)) return;
       r.jobCount++;
       r.jobEarnings += (j.subtotal ?? 0) / 100;
     });
